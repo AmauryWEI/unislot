@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Only this site's own files may load. The hash allows the inline theme script below;
+       recompute it (sha256, base64) if that script changes. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-gPfoQhfp3H/jQDe158PCkI/rjaUVUMFyS+QMw3jDxOw='; style-src 'self'; img-src 'self'; font-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>UniSlot: Rethinking Object-Centric Representations for Video Dynamics</title>
+  <meta name="description" content="UniSlot learns object-centric video representations that disentangle appearance from 3D-aware geometry, giving tighter masks, stable identities and better object dynamics prediction.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#fbfaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f0e17" media="(prefers-color-scheme: dark)">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="UniSlot: Rethinking Object-Centric Representations for Video Dynamics">
+  <meta property="og:description" content="Disentangling object appearance from 3D-aware geometry for unsupervised video decomposition, tracking and dynamics prediction.">
+  <meta property="og:url" content="https://amaurywei.github.io/unislot/">
+  <meta property="og:image" content="https://amaurywei.github.io/unislot/static/img/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="static/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="static/css/style.css?v=20">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="UniSlot, back to top">
+      <img src="static/img/favicon.svg" alt="" width="22" height="22"><span class="us">UniSlot</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#qualitative">Examples</a>
+      <a href="#downstream">Downstream</a>
+      <a href="#citation">Citation</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap narrow center">
+      <h1><span class="wordmark">UniSlot</span><span class="subtitle">Rethinking Object-Centric Representations for Video Dynamics</span></h1>
+      <p class="eyebrow">Unsupervised object-centric learning from video</p>
+
+      <p class="authors">
+        <a href="https://scholar.google.com/citations?user=mSvGsL0AAAAJ" target="_blank" rel="noopener">Amaury Wei</a>
+        <a href="https://scholar.google.com/citations?user=UWdDYtAAAAAJ" target="_blank" rel="noopener">Ismail Nejjar</a>
+        <span class="author"><a href="https://scholar.google.com/citations?user=eAcIoUgAAAAJ" target="_blank" rel="noopener">Olga Fink</a><svg class="corr" viewBox="0 0 24 24" role="img" aria-label="corresponding author"><title>Corresponding author</title><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7.5 8 6 8-6"/></svg></span>
+      </p>
+      <p class="affil">IMOS laboratory, EPFL (Switzerland)</p>
+      <p class="corr-note"><svg class="corr" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7.5 8 6 8-6"/></svg>Corresponding author</p>
+
+      <div class="buttons">
+        <a class="btn primary" href="https://arxiv.org/abs/2606.23436" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>arXiv
+        </a>
+        <a class="btn" href="https://arxiv.org/pdf/2606.23436" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 19h16"/></svg>PDF
+        </a>
+        <span class="btn disabled" aria-disabled="true" title="Code release coming soon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Code <em>soon</em>
+        </span>
+        <a class="btn" href="#citation">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h4v4H8a1 1 0 0 0-1 1v5M13 7h4v4h-3a1 1 0 0 0-1 1v5"/></svg>BibTeX
+        </a>
+      </div>
+    </div>
+
+    <figure class="wrap wide teaser" aria-label="UniSlot tracking objects in YouTube-VIS videos">
+      <div class="teaser-grid">
+        <img src="static/img/teaser/v1_f0.webp" alt="" loading="eager"><img src="static/img/teaser/v1_f1.webp" alt="" loading="eager"><img src="static/img/teaser/v1_f2.webp" alt="" loading="eager"><img src="static/img/teaser/v1_f3.webp" alt="" loading="eager"><img src="static/img/teaser/v1_f4.webp" alt="" loading="eager"><img src="static/img/teaser/v1_f5.webp" alt="" loading="eager">
+        <img src="static/img/teaser/v2_f0.webp" alt="" loading="lazy"><img src="static/img/teaser/v2_f1.webp" alt="" loading="lazy"><img src="static/img/teaser/v2_f2.webp" alt="" loading="lazy"><img src="static/img/teaser/v2_f3.webp" alt="" loading="lazy"><img src="static/img/teaser/v2_f4.webp" alt="" loading="lazy"><img src="static/img/teaser/v2_f5.webp" alt="" loading="lazy">
+        <img src="static/img/teaser/v3_f0.webp" alt="" loading="lazy"><img src="static/img/teaser/v3_f1.webp" alt="" loading="lazy"><img src="static/img/teaser/v3_f2.webp" alt="" loading="lazy"><img src="static/img/teaser/v3_f3.webp" alt="" loading="lazy"><img src="static/img/teaser/v3_f4.webp" alt="" loading="lazy"><img src="static/img/teaser/v3_f5.webp" alt="" loading="lazy">
+      </div>
+      <figcaption>Unsupervised object discovery and tracking on real-world YouTube-VIS<a class="cite" data-ref="ytvis" href="#ref-ytvis"></a> videos. Each color is one slot, kept on the same object across time. No annotations are used during training.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section id="overview" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Overview</h2>
+        <p class="lede">Existing slot-based video models mix <strong><i>what</i></strong> an object looks like with <strong><i>where</i></strong> it is. <span class="us">UniSlot</span> separates the two, so identity can stay fixed while geometry moves.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <div class="card-head">
+            <div class="card-icon c1" aria-hidden="true">
+              <!-- one slot split in two: appearance (filled blob) | geometry (crosshair) -->
+              <svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M12 5v14" stroke-dasharray="2 2"/><circle cx="7.2" cy="12" r="2.6" class="fill"/><circle cx="16.8" cy="12" r="2.6"/><path d="M16.8 7.6v1.8M16.8 14.6v1.8M12.4 12h1.8M19.4 12h1.8"/></svg>
+            </div>
+            <h3>Disentangled slots</h3>
+          </div>
+          <p>Each slot holds an appearance vector plus an explicit position and scale, instead of one entangled latent.</p>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div class="card-icon c2" aria-hidden="true">
+              <!-- the same object at three time steps, linked by its trajectory -->
+              <svg viewBox="0 0 24 24"><path d="M5 17C7 10 10 7.5 12 8s6 3 7 6" stroke-dasharray="2 2.4"/><circle cx="5" cy="17" r="2.6" class="fill solid"/><circle cx="12" cy="8" r="2.6" class="fill solid"/><circle cx="19" cy="14" r="2.6" class="fill solid"/></svg>
+            </div>
+            <h3>Identity from appearance</h3>
+          </div>
+          <p>Temporal consistency acts on appearance only, so objects keep their slot while they move, turn, or leave and re-enter.</p>
+        </article>
+        <article class="card">
+          <div class="card-head">
+            <div class="card-icon c3" aria-hidden="true">
+              <!-- a 3D box: geometry with depth -->
+              <svg viewBox="0 0 24 24"><path d="M12 12 20 7.5v9L12 21z" class="fill"/><path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>
+            </div>
+            <h3>Depth as a spatial prior</h3>
+          </div>
+          <p>Slots also reconstruct monocular depth during training, which cleanly separates objects from similar-looking backgrounds.</p>
+        </article>
+      </div>
+
+      <details class="abstract">
+        <summary>Read the full abstract</summary>
+        <p>Learning to decompose videos into persistent objects is a fundamental challenge in unsupervised object-centric representation learning. Despite recent progress, existing methods struggle to simultaneously achieve accurate object segmentation, consistent identities over time, and reliable foreground–background separation. To address these challenges, we introduce <span class="us">UniSlot</span> (Unified Slots), an unsupervised framework for learning robust and disentangled object-centric representations from videos. <span class="us">UniSlot</span> explicitly separates object appearance from its 3D-aware geometric pose in the scene, linking object identity to appearance while leveraging depth to better distinguish objects from their surroundings. <span class="us">UniSlot</span> achieves state-of-the-art performance in unsupervised object-centric video decomposition and tracking across synthetic and real-world benchmarks, yielding substantially tighter object masks and reducing background leakage while preserving object identities. Beyond decomposition and tracking, these improved representations translate directly to downstream tasks such as unsupervised object dynamics prediction, enabling more accurate forecasting of future object trajectories.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ METHOD ============ -->
+  <section id="method" class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Method</h2>
+        <p class="lede">A frozen DINO<a class="cite" data-ref="dino" href="#ref-dino"></a> encoder, a recurrent disentangled grouping module, and a 3D-aware decoder that reconstructs both features and depth.</p>
+      </div>
+
+      <figure class="fig paper scroll">
+        <img src="static/img/fig/method.webp" alt="UniSlot architecture: dense feature encoding, recurrent disentangled grouping into slots with position, scale, appearance and activation, then 3D-aware decoding into masks, visual content and depth." width="2400" height="710" loading="lazy">
+      </figure>
+      <p class="fig-hint">Swipe to see the full diagram →</p>
+
+      <ol class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <div><h3>Encode</h3><p>A frozen DINO<a class="cite" data-ref="dino" href="#ref-dino"></a> ViT turns each frame into dense patch features.</p></div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div><h3>Group</h3><p>Features are grouped into slots <math class="eq"><mi>S</mi><mo>=</mo><mo stretchy="false">(</mo><mi class="cv">v</mi><mo>,</mo><mi class="cp">p</mi><mo>,</mo><mi class="cs">s</mi><mo stretchy="false">)</mo></math>: <span class="cv">appearance</span>, <span class="cp">position</span> and <span class="cs">scale</span>. Grouping builds on ISA<a class="cite" data-ref="isa" href="#ref-isa"></a>. Slots are carried over from the previous frame, and a gate disables unused slots.</p></div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div><h3>Decode</h3><p>Each active slot decodes a mask, visual content and depth. These are composited to reconstruct the frame and its pseudo-depth from Depth Anything&nbsp;3<a class="cite" data-ref="da3" href="#ref-da3"></a>.</p></div>
+        </li>
+      </ol>
+
+      <div class="sub">
+        <div class="sub-head">
+          <h3>Editing a slot's geometry</h3>
+          <p>Because each slot is decoded in its own frame set by <span class="cp">position</span> <math><mi class="cp">p</mi></math> and <span class="cs">scale</span> <math><mi class="cs">s</mi></math>, these values can be edited in a trained model with no retraining. Moving or resizing one slot changes only that object and leaves its appearance and the rest of the scene intact.</p>
+        </div>
+        <figure class="fig paper scroll xwide">
+          <a class="zoom" href="static/img/fig/interventions.webp" target="_blank" rel="noopener"><img src="static/img/fig/interventions.webp" alt="Slot interventions: editing the position or scale of one slot on CLEVRER moves or enlarges that object only; on YouTube-VIS the decoded masks and features move accordingly" width="2400" height="628" loading="lazy"></a>
+        </figure>
+        <p class="fig-hint">Swipe to see the full figure →</p>
+          <p class="fig-caption"><strong>Slot interventions</strong> on CLEVRER<a class="cite" data-ref="clevrer" href="#ref-clevrer"></a> (left) and YouTube-VIS<a class="cite" data-ref="ytvis" href="#ref-ytvis"></a> (right). Titles give values before → after, and dashed contours mark the original extent. On YouTube-VIS the model reconstructs DINO features rather than pixels, so the edits show in the decoded masks and features.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section id="results" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Results</h2>
+        <p class="lede"><span class="us">UniSlot</span> is best on every metric across five video benchmarks, from synthetic scenes to real-world videos.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="stat-num">.927</span><span class="stat-label">ARI on CLEVRER<br><small>best baseline .095</small></span></div>
+        <div class="stat"><span class="stat-num">.304</span><span class="stat-label">ARI on YouTube-VIS 2019<br><small>best baseline .225</small></span></div>
+        <div class="stat"><span class="stat-num">.228</span><span class="stat-label">ARI on YouTube-VIS 2021<br><small>best baseline .134</small></span></div>
+      </div>
+
+      <div class="results-panel" data-tables="main" aria-label="Result tables"></div>
+    </div>
+  </section>
+
+  <!-- ============ QUALITATIVE ============ -->
+  <section id="qualitative" class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Examples</h2>
+      </div>
+
+      <div class="gallery-tabs seg" role="tablist" aria-label="Example type" id="galleryTabs">
+        <button role="tab" aria-selected="true" data-target="g-tracking">Tracking</button>
+        <button role="tab" aria-selected="false" data-target="g-reentry">Re-entry</button>
+        <button role="tab" aria-selected="false" data-target="g-nodepth" class="abl">No depth</button>
+        <button role="tab" aria-selected="false" data-target="g-noreg" class="abl">No regularizations</button>
+      </div>
+
+      <div class="gallery">
+        <figure class="fig paper panel active" id="g-tracking" role="tabpanel">
+          <div class="rowfig-scroll">
+            <div class="rowfig rows-tracking">
+              <div class="row-labels">
+                <div class="rl"><span>VideoSAUR<a class="cite" data-ref="videosaur" href="#ref-videosaur"></a></span></div>
+                <div class="rl"><span>SlotContrast<a class="cite" data-ref="slotcontrast" href="#ref-slotcontrast"></a></span></div>
+                <div class="rl"><span><span class="us">UniSlot</span> (ours)</span></div>
+              </div>
+              <img src="static/img/fig/qualitative.webp?v=2" alt="Comparison of VideoSAUR, SlotContrast and UniSlot on MOVi-C and YouTube-VIS" width="2200" height="1060" loading="lazy">
+            </div>
+          </div>
+          <p class="fig-hint">Swipe to see the full figure →</p>
+          <figcaption><strong>Decomposition and tracking.</strong> On MOVi-C (left), VideoSAUR<a class="cite" data-ref="videosaur" href="#ref-videosaur"></a> over-segments and swaps identities, while SlotContrast<a class="cite" data-ref="slotcontrast" href="#ref-slotcontrast"></a> merges objects. On YouTube-VIS (right), both baselines switch identities and leak into the background. <span class="us">UniSlot</span> keeps stable slots and tight masks.</figcaption>
+        </figure>
+        <figure class="fig paper panel" id="g-reentry" role="tabpanel" hidden>
+          <div class="rowfig-scroll">
+            <div class="rowfig rows-reentry">
+              <div class="row-labels">
+                <div class="rl"><span>VideoSAUR<a class="cite" data-ref="videosaur" href="#ref-videosaur"></a></span></div>
+                <div class="rl"><span>SlotContrast<a class="cite" data-ref="slotcontrast" href="#ref-slotcontrast"></a></span></div>
+                <div class="rl"><span><span class="us">UniSlot</span> (ours)</span></div>
+              </div>
+              <img src="static/img/fig/reentry.webp?v=2" alt="A skater leaves the frame at t=8 and re-enters at t=12; only UniSlot keeps the same slot" width="2200" height="1136" loading="lazy">
+            </div>
+          </div>
+          <p class="fig-hint">Swipe to see the full figure →</p>
+          <figcaption><strong>Interrupted visibility.</strong> The skater leaves at t = 8 and re-enters at t = 12. VideoSAUR assigns them a new slot, and SlotContrast fragments them. <span class="us">UniSlot</span> recovers the original slot.</figcaption>
+        </figure>
+        <figure class="fig paper panel" id="g-nodepth" role="tabpanel" hidden>
+          <div class="rowfig-scroll">
+            <div class="rowfig rows-depth">
+              <div class="row-labels">
+                <div class="rl"><span>No depth</span></div>
+                <div class="rl"><span><span class="us">UniSlot</span> (ours)</span></div>
+              </div>
+              <img src="static/img/fig/ablation_depth.webp?v=2" alt="Effect of depth pseudo-supervision on tracking and foreground-background separation" width="2200" height="721" loading="lazy">
+            </div>
+          </div>
+          <p class="fig-hint">Swipe to see the full figure →</p>
+          <figcaption><strong>Ablation: depth pseudo-supervision.</strong> Without depth, objects can be reassigned to a different slot after interactions (left) or mixed into the background (right). With depth, <span class="us">UniSlot</span> keeps stable tracks and a clean foreground–background separation.</figcaption>
+        </figure>
+        <figure class="fig paper panel" id="g-noreg" role="tabpanel" hidden>
+          <div class="pair">
+            <div class="rowfig rows-time">
+              <div class="row-labels">
+                <div class="rl"><span>No temporal<br>consistency</span></div>
+                <div class="rl"><span><span class="us">UniSlot</span> (ours)</span></div>
+              </div>
+              <img src="static/img/fig/ablation_time.webp" alt="Without the temporal alignment loss the cyclist switches slots across frames; UniSlot keeps one slot" width="1563" height="1040" loading="lazy">
+            </div>
+            <div class="rowfig rows-sep">
+              <div class="row-labels">
+                <div class="rl"><span>No slot<br>separation</span></div>
+                <div class="rl"><span><span class="us">UniSlot</span> (ours)</span></div>
+              </div>
+              <img src="static/img/fig/ablation_sep.webp" alt="Without the slot separation loss the car is split over two slots; UniSlot keeps it in one slot" width="1564" height="1040" loading="lazy">
+            </div>
+          </div>
+          <figcaption><strong>Ablation: regularization losses.</strong> Without temporal alignment, the cyclist switches slots from frame to frame. Without slot separation, the car is split over redundant slots. <span class="us">UniSlot</span> keeps each object in a single, stable slot.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DOWNSTREAM ============ -->
+  <section id="downstream" class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Downstream tasks</h2>
+        <p class="lede"><span class="us">UniSlot</span> representations directly improve predictions of future object states and reasoning about object interactions, with every object-centric model kept frozen.</p>
+      </div>
+
+      <div class="sub">
+        <div class="sub-head">
+          <h3>Object dynamics prediction</h3>
+          <p>A SlotFormer<a class="cite" data-ref="slotformer" href="#ref-slotformer"></a> predictor is trained on each method's frozen slots and rolls them forward in time. <span class="us">UniSlot</span> is best on 11 of 12 dataset–metric pairs, and more than doubles ARI on MOVi-C (.318 vs .123).</p>
+        </div>
+        <div class="results-panel" data-tables="dynamics" aria-label="Dynamics prediction results"></div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-head">
+          <h3>Visual question answering on CLEVRER</h3>
+          <p>An Aloe<a class="cite" data-ref="aloe" href="#ref-aloe"></a> transformer answers questions about object properties, collisions and their causes from each method's frozen slots. Predictive questions use slots rolled out by each method's own dynamics model.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-num">89.76%</span><span class="stat-label">Explanatory accuracy<br><small>+12.49 pp over SlotContrast</small></span></div>
+          <div class="stat"><span class="stat-num">83.19%</span><span class="stat-label">Predictive accuracy<br><small>+13.55 pp over SlotContrast</small></span></div>
+          <div class="stat"><span class="stat-num">67.85%</span><span class="stat-label">Counterfactual accuracy<br><small>+20.84 pp over SlotContrast</small></span></div>
+        </div>
+        <div class="results-panel" data-tables="vqa" aria-label="Visual question answering results"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REFERENCES ============ -->
+  <!-- Order = citation numbers on the page (see main.js). -->
+  <section id="references" class="section alt">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>References</h2>
+      </div>
+      <ol class="refs" id="refList">
+          <li id="ref-ytvis"><a class="ref-title" href="https://doi.org/10.1109/ICCV.2019.00529" target="_blank" rel="noopener">Video Instance Segmentation</a><span class="ref-meta">Linjie Yang, Yuchen Fan, Ning Xu · ICCV 2019</span></li>
+          <li id="ref-dino"><a class="ref-title" href="https://doi.org/10.1109/ICCV48922.2021.00951" target="_blank" rel="noopener">Emerging Properties in Self-Supervised Vision Transformers</a><span class="ref-meta">Mathilde Caron et al. · ICCV 2021</span></li>
+          <li id="ref-isa"><a class="ref-title" href="https://proceedings.mlr.press/v202/biza23a.html" target="_blank" rel="noopener">Invariant Slot Attention: Object Discovery with Slot-Centric Reference Frames</a><span class="ref-meta">Ondrej Biza et al. · ICML 2023</span></li>
+          <li id="ref-da3"><a class="ref-title" href="https://openreview.net/forum?id=yirunib8l8" target="_blank" rel="noopener">Depth Anything 3: Recovering the Visual Space from Any Views</a><span class="ref-meta">Haotong Lin et al. · ICLR 2026</span></li>
+          <li id="ref-clevrer"><a class="ref-title" href="https://openreview.net/forum?id=HkxYzANYDB" target="_blank" rel="noopener">CLEVRER: Collision Events for Video Representation and Reasoning</a><span class="ref-meta">Kexin Yi et al. · ICLR 2020</span></li>
+          <li id="ref-savi"><a class="ref-title" href="https://openreview.net/forum?id=aD7uesX1GF_" target="_blank" rel="noopener">Conditional Object-Centric Learning from Video</a><span class="ref-meta">Thomas Kipf et al. · ICLR 2022</span></li>
+          <li id="ref-videosaur"><a class="ref-title" href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/c1fdec0d7ea1affa15bd09dd0fd3af05-Abstract-Conference.html" target="_blank" rel="noopener">Object-Centric Learning for Real-World Videos by Predicting Temporal Feature Similarities</a><span class="ref-meta">Andrii Zadaianchuk, Maximilian Seitzer, Georg Martius · NeurIPS 2023</span></li>
+          <li id="ref-slotcontrast"><a class="ref-title" href="https://doi.org/10.1109/CVPR52734.2025.00508" target="_blank" rel="noopener">Temporally Consistent Object-Centric Learning by Contrasting Slots</a><span class="ref-meta">Anna Manasyan et al. · CVPR 2025</span></li>
+          <li id="ref-srl"><a class="ref-title" href="https://openreview.net/forum?id=bWoT6Z21rH" target="_blank" rel="noopener">From Vicious to Virtuous Cycles: Synergistic Representation Learning for Unsupervised Video Object-Centric Learning</a><span class="ref-meta">Hyun Seok Seong, WonJun Moon, Jae-Pil Heo · ICLR 2026</span></li>
+          <li id="ref-slotcurri"><a class="ref-title" href="https://openaccess.thecvf.com/content/CVPR2026/html/Moon_Reconstruction-Guided_Slot_Curriculum_Addressing_Object_Over-Fragmentation_in_Video_Object-Centric_Learning_CVPR_2026_paper.html" target="_blank" rel="noopener">Reconstruction-Guided Slot Curriculum: Addressing Object Over-Fragmentation in Video Object-Centric Learning</a><span class="ref-meta">WonJun Moon, Hyun Seok Seong, Jae-Pil Heo · CVPR 2026</span></li>
+          <li id="ref-kubric"><a class="ref-title" href="https://doi.org/10.1109/CVPR52688.2022.00373" target="_blank" rel="noopener">Kubric: A Scalable Dataset Generator</a><span class="ref-meta">Klaus Greff et al. · CVPR 2022</span></li>
+          <li id="ref-davis"><a class="ref-title" href="https://arxiv.org/abs/1704.00675" target="_blank" rel="noopener">The 2017 DAVIS Challenge on Video Object Segmentation</a><span class="ref-meta">Jordi Pont-Tuset et al. · arXiv 2017</span></li>
+          <li id="ref-sa"><a class="ref-title" href="https://proceedings.neurips.cc/paper/2020/hash/8511df98c02ab60aea1b2356c013bc0f-Abstract.html" target="_blank" rel="noopener">Object-Centric Learning with Slot Attention</a><span class="ref-meta">Francesco Locatello et al. · NeurIPS 2020</span></li>
+          <li id="ref-slotformer"><a class="ref-title" href="https://openreview.net/forum?id=TFbwV6I0VLg" target="_blank" rel="noopener">SlotFormer: Unsupervised Visual Dynamics Simulation with Object-Centric Models</a><span class="ref-meta">Ziyi Wu et al. · ICLR 2023</span></li>
+          <li id="ref-aloe"><a class="ref-title" href="https://proceedings.neurips.cc/paper/2021/hash/4c26774d852f62440fc746ea4cdd57f6-Abstract.html" target="_blank" rel="noopener">Attention over Learned Object Embeddings Enables Complex Visual Reasoning</a><span class="ref-meta">David Ding et al. · NeurIPS 2021</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ CITATION ============ -->
+  <section id="citation" class="section">
+    <div class="wrap narrow">
+      <div class="section-head">
+        <h2>Citation</h2>
+      </div>
+      <div class="bibtex">
+        <button class="copy" id="copyBib" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span>Copy</span>
+        </button>
+<pre><code id="bib">@article{wei2026unislot,
+  title   = {Rethinking Object-Centric Representations for Video Dynamics},
+  author  = {Wei, Amaury and Nejjar, Ismail and Fink, Olga},
+  journal = {arXiv preprint arXiv:2606.23436},
+  year    = {2026}
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>Copyright © 2026 · Website by <a href="https://amaurywei.com" target="_blank" rel="noopener">Amaury Wei</a></p>
+  </div>
+</footer>
+
+<script src="static/js/main.js?v=5"></script>
+</body>
+</html>
